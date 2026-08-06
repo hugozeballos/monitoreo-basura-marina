@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+.env
+.env*
+!.env.example
+,env
+*.sql
+*.dump
+.venv/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GCP
+*.json
+service-account*.json
+
+# Power BI temp
+*.pbix
