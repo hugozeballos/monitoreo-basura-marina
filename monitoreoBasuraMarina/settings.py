@@ -75,8 +75,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'formtools',
-    'monitoreo',
-    'blog',
     "litter",
 ]
 

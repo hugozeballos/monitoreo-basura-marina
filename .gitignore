@@ -26,3 +26,15 @@ service-account*.json
 
 # Power BI temp
 *.pbix
+
+# Build artifacts / uploads (regenerate with collectstatic; media is user-uploaded)
+/staticfiles/
+/media/
+
+# Personal notes, not for the public repo
+codigos.txt
+Guia_usuario.txt
+/README
+
+# Local backup zips of folders already tracked
+*.zip

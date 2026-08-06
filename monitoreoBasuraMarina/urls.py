@@ -25,7 +25,6 @@ from litter.views import map_view  # importa tu vista del mapa
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", map_view, name="home"),   # ← esta línea hace el mapa la home
-    path('blog/', include('blog.urls')),
     path("litter/", include("litter.urls")),
 
 ]
