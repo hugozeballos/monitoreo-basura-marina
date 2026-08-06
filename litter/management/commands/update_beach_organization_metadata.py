@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 except Beach.DoesNotExist:
                     continue
 
-                beach.zone_international = row["Organization"]
+                beach.international_zone = row["Organization"]
 
 
                 beach.save()
