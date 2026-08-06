@@ -35,6 +35,8 @@ def normalize_text(value):
     return value.strip()
 
 class Command(BaseCommand):
+    """Import a macrolitter CSV into Beach/SamplingEvent/SamplingUnit/UnitLitterCount (no beach metadata updates)."""
+
     help = "Import Beach Macrolitter dataset"
 
     def add_arguments(self, parser):

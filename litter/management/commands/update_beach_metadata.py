@@ -38,6 +38,8 @@ def normalize_text(text):
 
 
 class Command(BaseCommand):
+    """Import macrolitter CSV data and create/update Beach records with full location metadata (zone, region, coordinates)."""
+
     help = "Full Macrolitter Import with Beach Metadata"
 
     def add_arguments(self, parser):

@@ -3,6 +3,8 @@ from django.core.management.base import BaseCommand
 from litter.models import Beach
 
 class Command(BaseCommand):
+    """Set each Beach's organization/zone info from a CSV with 'Beach'/'Organization' columns, matched by beach name."""
+
     help = "Update beach metadata fields from CSV"
 
     def add_arguments(self, parser):
