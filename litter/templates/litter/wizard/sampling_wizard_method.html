@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Crear Monitoreo — Paso 2/3</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ wizard.management_form }}
+
+  <div class="mb-3">
+    {{ form.sampling_method.label_tag }} {{ form.sampling_method }}
+  </div>
+
+  <hr>
+  <h5>Parámetros del método</h5>
+
+  {# Render dinámico: muestra todos los campos menos sampling_method #}
+  {% for field in form %}
+    {% if field.name != "sampling_method" %}
+      <div class="mb-3">
+        {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+<button type="button"
+        class="btn btn-secondary"
+        onclick="document.querySelector('input[name=\'wizard_goto_step\']').value='base'; this.form.submit();">
+  Atrás
+</button>
+<input type="hidden" name="wizard_goto_step" value="">
+<button class="btn btn-primary" type="submit">Siguiente</button>
+</form>
+
+{# Para que al cambiar método se recargue y aparezcan campos dinámicos #}
+<script>
+(function () {
+    const sel = document.querySelector('select[name$="sampling_method"]');
+    if (!sel) return;
+
+    sel.addEventListener("change", function () {
+        const form = this.form;
+
+        // Campo oculto para indicar que es recarga interna
+        let reloadInput = document.querySelector('input[name="reload_step"]');
+        if (!reloadInput) {
+            reloadInput = document.createElement("input");
+            reloadInput.type = "hidden";
+            reloadInput.name = "reload_step";
+            form.appendChild(reloadInput);
+        }
+
+        reloadInput.value = "1";
+
+        form.submit();
+    });
+})();
+</script>
+
+{% endblock %}

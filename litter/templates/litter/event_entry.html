@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Ingreso de Datos</h2>
+
+<p>
+Evento #{{ event.id }} |
+Playa: {{ event.beach.name }} |
+Fecha: {{ event.date }}
+</p>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">        <thead>
+            <tr>
+                <th style="position: sticky; left: 0; background: white;">Unidad</th>
+                {% for lt in litter_types %}
+                    <th>{{ lt.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for row in units_data %}
+            <tr>
+                <td><strong>{{ row.unit.label }}</strong></td>
+
+                {% for cell in row.counts %}
+                <td style="position: sticky; left: 0; background: white;">
+                    <input type="number"
+                           name="count_{{ row.unit.id }}_{{ cell.litter_type.id }}"
+                           min="0"
+                           style="width: 70px;"
+                           value="{{ cell.value }}">
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<br>
+<button type="submit">Guardar</button>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:1.5rem">
+  <h2 class="mb-0">Países</h2>
+  <span class="text-muted" style="font-size:13px;">{{ countries|length }} países monitoreados</span>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0" style="table-layout:fixed;">
+      <thead class="table-light">
+        <tr>
+          <th style="width:35%">País</th>
+          <th class="text-end" style="width:12%">Playas</th>
+          <th class="text-end" style="width:15%">Monitoreos</th>
+          <th style="width:25%">Actividad</th>
+          <th style="width:13%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in countries %}
+        <tr style="cursor:pointer;" onclick="window.location='{% url 'country_detail' country=c.name %}'">
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span style="font-size:20px;">{{ c.flag }}</span>
+              <span class="fw-semibold">{{ c.name }}</span>
+            </div>
+          </td>
+          <td class="text-end text-muted">{{ c.n_beaches }}</td>
+          <td class="text-end text-muted">{{ c.n_events }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="flex:1;height:6px;background:var(--bs-gray-200);border-radius:3px;overflow:hidden;">
+                <div style="width:{{ c.activity_pct }}%;height:100%;background:#1D9E75;border-radius:3px;"></div>
+              </div>
+              <span class="badge rounded-pill
+                {% if c.activity_level == 'Alto' %}text-bg-success
+                {% elif c.activity_level == 'Medio' %}text-bg-warning
+                {% else %}text-bg-secondary{% endif %}"
+                style="font-size:11px;">{{ c.activity_level }}</span>
+            </div>
+          </td>
+          <td class="text-end text-muted">›</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

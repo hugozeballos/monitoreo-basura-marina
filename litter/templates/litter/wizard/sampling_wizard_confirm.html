@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Crear Monitoreo — Paso 3/3</h2>
+
+{% if preview_error %}
+  <div class="alert alert-danger">{{ preview_error }}</div>
+{% endif %}
+
+<h5>Resumen</h5>
+<ul>
+  <li><strong>Playa:</strong> {{ base_data.beach }}</li>
+  <li><strong>Fecha:</strong> {{ base_data.date }}</li>
+  <li><strong>Organización:</strong> {{ base_data.organization|default:"—" }}</li>
+  <li><strong>Método:</strong> {{ method_data.sampling_method }}</li>
+</ul>
+
+{% if preview %}
+  <h5>Preview científico (estimado)</h5>
+  <ul>
+    <li><strong>Layout:</strong> {{ preview.layout }}</li>
+    <li><strong>Unidades esperadas:</strong> {{ preview.units_expected }}</li>
+    <li><strong>Área total estimada (m²):</strong> {{ preview.area_m2_total_estimated }}</li>
+    <li><strong>Área por unidad (m²):</strong> {{ preview.area_m2_per_unit }}</li>
+  </ul>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  {{ wizard.management_form }}
+
+  <div class="mb-3">
+    {{ form.confirm }} {{ form.confirm.label_tag }}
+    {% for error in form.confirm.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+  </div>
+
+  <button class="btn btn-secondary" name="wizard_goto_step" value="method" type="submit">Atrás</button>
+  <button class="btn btn-success" type="submit">Crear Monitoreo</button>
+</form>
+
+{% endblock %}

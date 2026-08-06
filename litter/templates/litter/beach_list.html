@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Playas</h2>
+  <span id="beachCount" class="text-muted small"></span>
+</div>
+
+{# ── Filtros ─────────────────────────────────────────────────────────── #}
+<div class="card shadow-sm mb-4">
+  <div class="card-body py-3">
+    <div class="row g-3 align-items-end">
+
+      <div class="col-12 col-md-3">
+        <label class="form-label small text-muted mb-1">Nombre</label>
+        <input id="filterName" type="text" class="form-control form-control-sm" placeholder="Buscar playa…">
+      </div>
+
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">País</label>
+        <select id="filterCountry" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% for country in countries %}
+            <option value="{{ country }}">{{ country }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">Institución</label>
+        <select id="filterOrg" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          {% for org in organizations %}
+            <option value="{{ org.id }}">{{ org.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label class="form-label small text-muted mb-1">Densidad mínima (ítem/m²)</label>
+        <input id="filterDensity" type="number" class="form-control form-control-sm" placeholder="ej: 0.5" step="0.1" min="0">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# ── Tabla ───────────────────────────────────────────────────────────── #}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>País</th>
+          <th>Ciudad</th>
+          <th class="text-end">Monitoreos</th>
+          <th class="text-end">Densidad prom.</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="beachTableBody">
+        {% for beach in beaches %}
+        <tr class="beach-row"
+            data-name="{{ beach.name|lower }}"
+            data-country="{{ beach.country }}"
+            data-org="{{ beach.last_event_org_id|default:'' }}"
+            data-density="{{ beach.avg_density|default:0 }}">
+          <td class="fw-semibold">{{ beach.name }}</td>
+          <td>
+            <a href="{% url 'country_detail' country=beach.country %}" class="text-decoration-none text-muted">
+              {{ beach.country }}
+            </a>
+          </td>
+          <td class="text-muted">{{ beach.city|default:"—" }}</td>
+          <td class="text-end text-muted">{{ beach.n_events }}</td>
+          <td class="text-end">
+            {% if beach.avg_density %}
+              {{ beach.avg_density|floatformat:3 }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{% url 'beach_detail' beach.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Sin playas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const rows    = document.querySelectorAll(".beach-row");
+const countEl = document.getElementById("beachCount");
+
+function applyFilters() {
+  const name    = document.getElementById("filterName").value.trim().toLowerCase();
+  const country = document.getElementById("filterCountry").value;
+  const org     = document.getElementById("filterOrg").value;
+  const density = parseFloat(document.getElementById("filterDensity").value) || 0;
+
+  let visible = 0;
+  rows.forEach(row => {
+    const matchName    = !name    || row.dataset.name.includes(name);
+    const matchCountry = !country || row.dataset.country === country;
+    const matchOrg     = !org     || row.dataset.org === org;
+    const matchDensity = !density || parseFloat(row.dataset.density) >= density;
+
+    const show = matchName && matchCountry && matchOrg && matchDensity;
+    row.style.display = show ? "" : "none";
+    if (show) visible++;
+  });
+
+  countEl.textContent = `${visible} playa${visible !== 1 ? "s" : ""}`;
+}
+
+// Inicializar contador
+applyFilters();
+
+// Eventos en tiempo real
+document.getElementById("filterName").addEventListener("input", applyFilters);
+document.getElementById("filterCountry").addEventListener("change", applyFilters);
+document.getElementById("filterOrg").addEventListener("change", applyFilters);
+document.getElementById("filterDensity").addEventListener("input", applyFilters);
+</script>
+
+{% endblock %}

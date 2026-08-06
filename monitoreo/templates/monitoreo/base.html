@@ -1,0 +1,399 @@
+<html>
+
+<head>
+    {% load static %}
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+     <!-- Fonts -->
+    
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+
+      <!-- Leaflet CSS y JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Leaflet.markercluster CSS y JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+
+     
+
+    <title>Centro de Monitoreo de Calidad de Aguas</title>
+    <div class="calidad-agua-title">
+
+      
+      <span class="texto-calidad-agua-title">Centro de Monitoreo de Calidad de Aguas</span>
+      <img class="logo" src="{% static '/monitoreo/img/hohonu.jpg' %}"></img>
+    </div>
+        <!-- Manu Start-->
+  <nav class="navbar" style="height: 55px">
+    <!-- nav container Start-->
+   <div class=" container-fluid" style="height: 45px">
+      
+      <!-- nav button-->
+    <button class="navbar-toggler" type="button" data-bs-backdrop="false" data-bs-toggle="offcanvas" data-bs-target="#menuLateral">
+     <span class="navbar-toggler-icon"></span>
+    </button>
+      <!-- Offcanvas main containner start (si quiesiera quitar efecto sombreado agregar esto data-bs-backdrop="false")-->
+      <section class="offcanvas offcanvas-start" data-bs-scroll="true"  id="menuLateral" tabindex="-1" style="margin-top: 96;">
+      <div class="offcanvas-body">
+        <ul class="navbar-nav fs-5 justify-content-evenly">
+          <il class="nav-item p-3 py-md-1"><a href="{% url 'Home' %}" class="nav-link">Inicio</a></il>
+          <il class="nav-item p-3 py-md-1"><a href="{% url 'Contacto' %}" class="nav-link">Contacto</a></il>
+          <il class="nav-item p-3 py-md-1"><a href="{% url 'Blog' %}" class="nav-link">Blog</a></il>
+         </ul>        
+      </div>
+    </section>
+      <!-- Offcanvas main containner end-->
+      <div>
+        <a href="navbar-brand text-info fw-semibold fs-4" class="" style="color: #EE6F2D; font-size: 18px; font-family: kanit; text-decoration-line: none;">Perfil</a>
+        <a href="navbar-brand text-info fw-semibold fs-4" class="" style="color: #EE6F2D; font-size: 18px; font-family: kanit; text-decoration-line: none; margin-left: 15px;">Cerrar Sesion</a>
+      </div>
+   </div>
+
+</nav>
+
+</head>
+<!-- Styles -->
+<style>
+  .logo {
+    float: inline-end;
+    height: 45px;
+    margin-top: -10;
+  }
+
+  body > nav {
+    width: 100%;
+  }
+  /*mueve el div que atenua al fondo justo despues del nav*/
+  body > nav > div > div.offcanvas-backdrop.fade.show {
+    margin-top: 95px;
+  }
+
+  /*quita borde icono*/
+  .navbar-toggler {
+    border: none;
+  }
+  /*efecto al enfocar*/
+  .navbar-toggler:focus {
+    outline:none;
+    box-shadow: none;
+  }
+  /*cambia el color del icono*/
+  .navbar-toggler-icon {
+    --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28238, 111, 45, 1.0%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")!important;
+  }
+  /*Texto del titulo*/
+  .texto-calidad-agua-title{
+  font-family: Kanit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: #FFFFFF;
+  }
+  /*caja del titulo*/
+.calidad-agua-title{
+  background: #39332B;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 50px;
+  align-content: space-between !important;
+  }
+/*texto del menu*/
+#menuLateral > div > ul > il{
+  font-family: Kanit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0em;
+  text-align: left;
+  padding-top: 17 !important;
+}
+
+
+/*borde  de la lista del menu lateral*/
+#menuLateral > div > ul > il{
+  border-bottom: #39332B;
+  border-bottom-style: solid;
+  border-width: 1px;
+ 
+}
+/*caja del menu lateral*/
+#menuLateral > div {
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 0px!important;
+  padding-right: 0px!important;
+  padding-top: 0px!important;
+}
+/*esconde la caja del enlace*/
+/*#menuLateral > div > ul > il > a{
+  
+}*/
+/*añtura de cada caja del menu lateral*/
+#menuLateral > div > ul > il {
+  height: 60px;
+}
+/*quita el efecto de sombreado al aparecer el menu
+.offcanvas.show .offcanvas-backdrop {
+      display: none;
+}*/
+/*borde de la barra de navagacion*/
+body > nav > div{
+      border-bottom: #39332B;
+      border-bottom-style: solid;
+      border-width: 1px;
+    }
+#menuLateral {
+  width: 250;
+}
+
+/*PAgina agregar*/
+
+/*color letra titulo*/
+body > div:nth-child(4) > h2 {
+  color: #EE6F2D;
+  font-size: 17px;
+  font-weight: 800;
+}
+/*margnees del div que contiene el texto*/
+#proyecto_nuevo {
+  margin-top: 70px;
+  margin-left: 100px;
+  margin-right: 100px;
+  width: 70%;
+}
+/*texto gris*/
+#proyecto_nuevo > p {
+  color: #626262;
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 20px;
+
+}
+
+/*FORMULARIO0*/
+
+#caja_formulario > form > table > tbody > tr > td >input[type=text] {
+  font-size: 13px;
+  color: #D2D2D2;
+  padding-bottom: 30px;
+}
+
+#caja_formulario > form > table > tbody > tr > td >input[type=number] {
+  font-size: 13px;
+  color: #D2D2D2;
+  padding-bottom: 30px;
+}
+
+#caja_formulario > form > table > tbody > tr > td >input[type=email] {
+  font-size: 13px;
+  color: #D2D2D2;
+  padding-bottom: 30px;
+}
+
+#caja_formulario > form > table > tbody > tr > td >input[type=date] {
+  font-size: 13px;
+  color: #D2D2D2;
+  padding-bottom: 30px;
+}
+
+#caja_formulario > form > table > tbody > tr > td >input[type=time] {
+  font-size: 13px;
+  color: #D2D2D2;
+  padding-bottom: 30px;
+}
+ /*Etiqueta formulario*/
+#caja_formulario > form > table > tbody > tr > th > label{
+  font-size: 13px;
+  font-weight: 500;
+  color:#003233;
+}
+
+#titulo_formulario > h3{
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+#caja_formulario > {
+  padding-left: 200px;
+  margin: auto;
+}
+
+ /*formulario dentro de la caja*/
+#caja_formulario > form {
+  width: 60%;
+  margin: auto;
+  height: 250px;
+}
+
+/**/
+
+#caja_formulario > form > table > tbody > tr > td {
+  height: 60px;
+}
+
+
+#caja_formulario > form > table > tbody > tr{
+  display: inline-block;
+  width: 50% !important;
+  height: auto; 
+}
+
+/*#caja_formulario > form > table > tbody > tr:nth-child(even){
+
+}*/
+
+
+
+#caja_formulario > form > table > tbody {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+#caja_formulario > form > table > tbody > tr:nth-child(15){
+  width: 93% !important;
+}
+
+#caja_formulario > form > table > tbody > tr:nth-child(15) > td {
+  width: 93% !important;
+}
+
+#id_Descripcion_del_recurso_hidrico {
+  width: 100% !important;
+  height: 104px !important;
+}
+
+#caja_formulario > form > table > tbody > tr > td {
+  display: block;
+  width: 100% !important;
+}
+
+#caja_formulario > form > table > tbody > tr > th {
+  display: block;
+  width: 100% !important;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+#caja_formulario {
+  height: 1000px !important;
+}
+/*Input*/
+#caja_formulario > form > table > tbody > tr > td >input {
+  border-radius: p4x;
+  width: 70%;
+  border: 1px solid #E0C59E;
+}
+/*tamaño cajas input*/
+#id_Nombre_Proyecto, #id_Institucion_o_Empresa, #id_Responsable, #id_Localidades {
+  height: 55px !important;
+}
+
+#id_Longitud, #id_Latitud, #id_Total_de_muestras_tomadas, #id_Financiamiento, #id_Zona_o_Regiones, #id_Fecha, #id_Hora  {
+  height: 40px !important;
+}
+
+#id_Tipos_de_fuente_o_recursos_hidricos {
+  height: 65px;
+}
+/*Altura de la tabla*/
+#caja_formulario > form > table {
+  height: 775px;
+}
+
+#caja_formulario > form > table > tbody > tr:nth-child(16) > th > label {
+  font-weight: 700;
+}
+
+/*Botones*/
+#caja_botones > input[type=submit]:nth-child(1) {
+  background-color: transparent;
+  border: 2px solid #028071;
+  color: #028071;
+  border-radius: 5px;
+  font-weight: 700;
+  width: 20%;
+  margin: 5 5 5 5;
+
+}
+
+
+#caja_botones > input[type=submit]:nth-child(2) {
+  background-color: 028071;
+  border: 2px solid #028071;
+  color: white;
+  border-radius: 5px;
+  font-weight: 700;
+  width: 25%;
+  margin: 5 5 5 5;
+
+}
+
+#caja_botones {
+  display: flex;
+  justify-content: center;
+}
+
+/*mapa*/
+#mapa {
+  margin: auto;
+  height: 550px; 
+  width: 90%;
+  margin-bottom: 50px;
+}
+
+/*caja ssobre mapa*/
+#caja_sobremapa {
+  margin: auto;
+  display: flex;
+  width: 90%;
+}
+
+/*caja titulo*/
+#caja_titulo {
+  width: 100%;
+}
+
+
+#titulo_mapa {
+  margin-top: 20px;
+}
+
+/*poppupp*/
+#mapa > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-popup-pane > div > div.leaflet-popup-content-wrapper > div > span{
+  font-weight: 800;
+}
+
+#mapa > div.leaflet-pane.leaflet-map-pane > div.leaflet-pane.leaflet-popup-pane > div > div.leaflet-popup-content-wrapper > div > h3 {
+  margin-bottom: 0;
+}
+</style>
+    <!-- contendo cambiante -->
+    {% block content %}
+
+    {% endblock %}
+
+
+     <!--Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+</body>
+
+
+</html>

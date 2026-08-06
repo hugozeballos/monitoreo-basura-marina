@@ -1,0 +1,36 @@
+{% extends "monitoreo/base.html" %}
+{% load static %}
+{% block content %}
+
+  {% for post in posts %}
+
+  <section class="section-blog">
+    <div class="container">
+      <div class="intro">
+        <img class="image-intro" src="{{post.imagen.url}}" alt="" style="width: 50%;">
+        <div class="intro-text">
+          <h2 class="heading-intro">{{post.nombre}}</h2>
+          <div class="caja-autor-fecha">
+            <div class="autor">Autor : {{post.autor}}</div>
+            <div class="fecha-categoria">{{post.created}}/{% for categoria in post.categorias.all %}{{categoria.nombre}}{% endfor %}</div>
+          </div>
+          <span class="content-intro">{{post.contenido}}</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  {% endfor %}
+
+  <section>
+    <div class="categorias>">
+      Categorias:
+      {% for post in posts %}
+        {% for categoria in post.categorias.all %}
+          {{categoria.nombre}} &nbsp;&nbsp;
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

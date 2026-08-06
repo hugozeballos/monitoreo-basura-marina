@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Crear Monitoreo</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <p>{{ form.beach.label_tag }} {{ form.beach }}</p>
+    <p>{{ form.date.label_tag }} {{ form.date }}</p>
+    <p>{{ form.sampling_method.label_tag }} {{ form.sampling_method }}</p>
+    <div id="dynamic-fields"></div>
+    <p>{{ form.organization.label_tag }} {{ form.organization }}</p>
+
+
+    <p>{{ form.notes.label_tag }} {{ form.notes }}</p>
+
+    <button type="submit">Guardar</button>
+</form>
+
+<script>
+const METHODS_SCHEMA = JSON.parse('{{ methods_schema_json|escapejs }}');
+document.addEventListener("DOMContentLoaded", function () {
+
+    const methodSelect = document.getElementById("id_sampling_method");
+    const dynamicDiv = document.getElementById("dynamic-fields");
+
+    function renderDynamicFields(methodId) {
+        dynamicDiv.innerHTML = "";
+
+        const schema = METHODS_SCHEMA[methodId];
+
+        if (!schema) return;
+
+        Object.keys(schema).forEach(paramName => {
+            const config = schema[paramName];
+            const defaultValue = config.default || "";
+
+            const wrapper = document.createElement("p");
+
+            const label = document.createElement("label");
+            label.innerText = paramName.replace("_", " ");
+            label.setAttribute("for", "id_" + paramName);
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.name = paramName;
+            input.id = "id_" + paramName;
+            input.value = defaultValue;
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+
+            dynamicDiv.appendChild(wrapper);
+        });
+    }
+
+    if (methodSelect) {
+        methodSelect.addEventListener("change", function () {
+            renderDynamicFields(this.value);
+        });
+
+        if (methodSelect.value) {
+            renderDynamicFields(methodSelect.value);
+        }
+    }
+
+});
+</script>
+
+{% endblock %}

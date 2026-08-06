@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Monitoreos</h2>
+
+<div class="table-responsive">
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Playa</th>
+            <th>Fecha</th>
+            <th>Método</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.id }}</td>
+            <td>{{ event.beach.name }}</td>
+            <td>{{ event.date }}</td>
+            <td>{{ event.sampling_method.name }}</td>
+            <td>{{ event.status }}</td>
+            <td>
+                <a href="{% url 'sampling_event_units' event.id %}">Unidades</a> |
+                <a href="{% url 'sampling_event_entry' event.id %}">Ingresar datos</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,124 @@
+GUÍA DE USUARIO — Monitoreo de Basura Marina
+1. Conceptos básicos (en simple)
+
+Playa: el lugar físico.
+
+Evento de muestreo: una visita a la playa en una fecha.
+
+Unidad de muestreo: un cuadrante/segmento donde se cuentan residuos.
+
+Tipo de basura: categoría del residuo.
+
+Conteo: cuántos residuos de un tipo hay en una unidad.
+
+2. Crear una playa
+
+Ir a Beaches → Add
+
+Completar:
+
+Nombre
+
+País / región
+
+Coordenadas
+
+Imagen de portada (obligatoria)
+
+Guardar.
+
+3. Crear un evento de muestreo
+
+Ir a Sampling events → Add
+
+Seleccionar:
+
+Playa
+
+Fecha
+
+Método de muestreo
+
+Guardar (queda en Draft).
+
+En este punto aún no se ingresan conteos.
+
+4. Generar unidades de muestreo
+
+Ir a la lista de Sampling events.
+
+Seleccionar el evento en Draft.
+
+Acción: Generate SamplingUnits from method.
+
+Ejecutar.
+
+Ahora el evento tiene sus cuadrantes/segmentos listos.
+
+5. Ingresar conteos de basura
+
+Abrir el evento.
+
+Entrar a una unidad (ej. T1-S1).
+
+Registrar conteos por tipo:
+
+Papers
+
+Plastics
+
+Metals
+
+etc.
+
+Repetir para todas las unidades.
+
+6. Enviar a revisión
+
+Cuando todos los datos estén ingresados:
+
+Cambiar estado a Submitted.
+
+7. Validación (admin)
+
+El administrador:
+
+Revisa el evento.
+
+Puede:
+
+Validar → datos aceptados.
+
+Rechazar → requiere correcciones.
+
+Solo eventos Validated se consideran oficiales.
+
+8. Buenas prácticas
+
+No modificar unidades una vez enviados los datos.
+
+Usar fotos como respaldo cuando sea posible.
+
+Completar todas las unidades antes de enviar.
+
+No “inventar” densidades: el sistema las calcula.
+
+9. Qué NO hace todavía el sistema
+
+No calcula automáticamente gráficos.
+
+No expone datos públicos.
+
+No reemplaza protocolos científicos oficiales.
+
+No valida estadísticamente los datos.
+
+Si quieres, en la próxima sesión puedo:
+
+Convertir esto a README.md formateado
+
+Agregar diagramas ER
+
+Definir el roadmap técnico (A2, A3, B1…)
+
+O empezar con la visualización D3.js directamente sobre eventos validados

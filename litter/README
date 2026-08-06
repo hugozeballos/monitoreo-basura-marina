@@ -1,0 +1,267 @@
+📘 README — Marine Litter Monitoring Platform
+1. Objetivo del proyecto
+
+Este proyecto implementa una plataforma de monitoreo y visualización de residuos marinos basada en datos de muestreos reales en playas de Latinoamérica y Chile.
+
+Los objetivos principales son:
+
+Importar datos heterogéneos desde CSV reales (con problemas de formato, codificación y valores faltantes).
+
+Modelar correctamente la relación Playa → Evento de muestreo → Tipo de residuo → Conteo.
+
+Exponer los datos mediante una API en Django.
+
+Visualizar espacialmente los muestreos usando Leaflet.
+
+Mostrar gráficos de barras por playa dentro de los popups del mapa usando Chart.js.
+
+⚠️ No se utiliza GeoDjango: las coordenadas se manejan como FloatField (lat/lng).
+
+2. Stack tecnológico
+Backend
+
+Python 3.x
+
+Django
+
+SQLite (desarrollo)
+
+Management commands personalizados para importación CSV
+
+Frontend
+
+Leaflet.js (mapa)
+
+OpenStreetMap tiles
+
+Chart.js (gráficos de barras en popups)
+
+HTML + JS vanilla (sin frameworks)
+
+3. Modelo de datos (explicación conceptual)
+
+El modelo está diseñado para evitar duplicaciones y permitir análisis agregados.
+
+🏖️ Beach
+
+Representa una playa única.
+
+Campos relevantes:
+
+name
+
+city, region, country
+
+latitude, longitude
+
+international_zone, chile_zone
+
+Relación:
+
+Una playa puede tener muchos eventos de muestreo.
+
+📅 SamplingEvent
+
+Representa un muestreo en una playa en una fecha específica, realizado por una organización.
+
+Campos relevantes:
+
+beach (FK)
+
+date
+
+organization
+
+total_items
+
+total_items_per_m2
+
+observations
+
+Relación:
+
+Un evento pertenece a una playa.
+
+Un evento tiene muchos conteos de residuos.
+
+⚠️ total_items puede venir como NA en el CSV → se parsea de forma segura.
+
+🧴 LitterType
+
+Catálogo normalizado de tipos de residuos.
+
+Campos:
+
+code (interno, estable)
+
+label (texto legible: Plastics, Cigarette butts, Worked wood, etc.)
+
+Relación:
+
+Un tipo de residuo puede aparecer en muchos eventos.
+
+🔢 LitterCount
+
+Tabla puente que cuantifica residuos por evento.
+
+Campos:
+
+sampling_event (FK)
+
+litter_type (FK)
+
+count
+
+Relación:
+
+Cada fila representa:
+
+“En este evento, este tipo de residuo apareció N veces”
+
+📐 Diagrama lógico (simplificado)
+Beach
+  └── SamplingEvent
+         └── LitterCount
+                └── LitterType
+
+4. Importación de datos (CSV real)
+Desafíos resueltos
+
+CSV con:
+
+separador ;
+
+codificación con BOM (\ufeff)
+
+números con coma decimal (13,915)
+
+fechas múltiples (01-feb-22, 1-Feb-2022)
+
+valores "NA"
+
+Soluciones aplicadas
+
+Normalización de headers (strip, eliminación BOM).
+
+parse_float, parse_int, parse_date robustos.
+
+Manejo explícito de valores faltantes.
+
+Importación idempotente con get_or_create.
+
+Comando
+python manage.py import_litter_csv datos/datos.csv
+
+5. API
+Endpoint principal
+GET /litter/api/beaches/
+
+Respuesta (ejemplo)
+{
+  "id": 32,
+  "name": "Llacolén",
+  "lat": -36.753,
+  "lng": -73.185,
+  "litter": [
+    { "litter_type__label": "Plastics", "total": 16 },
+    { "litter_type__label": "Others", "total": 21 },
+    { "litter_type__label": "Worked wood", "total": 9 }
+  ]
+}
+
+
+⚠️ Importante:
+El campo correcto es litter_type__label (doble guion bajo), no litter_type_label.
+Este fue el bug crítico que causaba undefined en los popups.
+
+6. Visualización (Leaflet + Chart.js)
+Mapa
+
+Leaflet centrado en Chile.
+
+Marcadores por playa.
+
+Coordenadas tomadas desde Beach.lat/lng.
+
+Popup
+
+Cada popup contiene:
+
+Nombre de la playa.
+
+Un gráfico de barras horizontal:
+
+Eje Y: tipo de residuo.
+
+Eje X: cantidad.
+
+Detalle técnico crítico
+
+Chart.js NO debe renderizarse inmediatamente al abrir el popup.
+
+✔ Solución correcta:
+
+Usar popupopen
+
+Esperar con setTimeout
+
+Canvas con tamaño fijo
+
+responsive: false
+
+7. Estado actual del proyecto
+
+✅ Importación CSV robusta
+✅ Modelo correcto y normalizado
+✅ API funcionando
+✅ Mapa base funcionando
+✅ Marcadores correctos
+✅ Popups con gráficos funcionando
+
+8. Próximos pasos posibles
+
+Filtros por año / rango temporal
+
+Normalización por m²
+
+Comparación entre playas
+
+Heatmap
+
+Exportación de datos
+
+Dashboard complementario (Power BI / D3 / etc.)
+
+🧠 PROMPT DE RE-CONTEXTUALIZACIÓN (para futuras sesiones)
+
+Copia y pega exactamente esto cuando retomes el proyecto:
+
+Estoy retomando un proyecto Django de monitoreo de residuos marinos.
+El backend importa datos reales desde CSV (con BOM, separador ;, fechas mixtas, valores NA) hacia un modelo normalizado:
+
+Beach (lat/lng como FloatField, sin GeoDjango)
+
+SamplingEvent (fecha, organización, totales)
+
+LitterType (catálogo)
+
+LitterCount (conteo por evento y tipo)
+
+Existe un endpoint /litter/api/beaches/ que devuelve playas con agregados de residuos usando litter_type__label (doble guion bajo).
+
+En el frontend uso Leaflet para el mapa y Chart.js para mostrar gráficos de barras horizontales dentro de los popups.
+El render del gráfico se hace en popupopen con setTimeout porque Chart.js necesita que el canvas esté visible.
+
+El bug crítico previo fue un acceso incorrecto al campo (litter_type_label vs litter_type__label).
+
+Actúa como arquitecto senior Django + data visualization, manteniendo coherencia con este diseño y ayudándome a extender o refactorizar el sistema.
+
+Si quieres, en el próximo paso puedo:
+
+ayudarte a versionar esto como paper / informe técnico
+
+preparar un diagrama UML
+
+o convertir esto en un producto demo para presentación institucional.
+
+ChatGPT puede cometer errores. Considera verificar la información importante.

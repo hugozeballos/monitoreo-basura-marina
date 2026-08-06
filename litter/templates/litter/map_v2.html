@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Playas V2</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <style>
+        #map {
+            height: calc(100vh - 60px);
+        }
+        .leaflet-popup-content {
+            overflow: visible !important;
+        }
+        .popup-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .popup-sub {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .stat-card {
+            flex:1;
+            background:white;
+            border-radius:5px;
+            padding:24px 10px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            box-shadow:0 6px 14px rgba(0,0,0,0.08);
+            margin-bottom:15px;
+            min-height:120px;
+            width:85%;
+            margin:0 auto;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size:22px;
+            font-weight:700;
+            color:#111;
+            margin-bottom:6px;
+
+        }
+
+        .stat-label {
+            font-size:14px;
+            font-weight:600;
+            color:#666;
+            margin-top:6px;
+        }
+
+        #powerbi-dashboard {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+    </style>
+
+</head>
+<body>
+<header class="site-header">
+    <div class="header-left">
+        <div id="menuToggle" class="menu-toggle">☰</div>
+        <h1>Marine Litter Monitoring</h1>
+    </div>
+
+</header>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container-fluid px-4">
+
+    <a class="navbar-brand fw-bold" href="{% url 'litter_map' %}">🌊 Marine Litter</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'litter_map' %}">🗺 Mapa</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'beach_list' %}">🏖 Playas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'sampling_event_list' %}">📋 Monitoreos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'country_list' %}">🌎 Países</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">➕ Nuevo</a>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" href="{% url 'sampling_create_wizard' %}">Nuevo monitoreo</a></li>
+            <li><a class="dropdown-item" href="{% url 'beach_create' %}">Nueva playa</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      {# Búsqueda rápida de playas #}
+      <div class="d-flex position-relative me-3" style="min-width:220px;">
+        <input id="navSearchInput"
+               class="form-control form-control-sm bg-dark text-white border-secondary"
+               type="text"
+               placeholder="Buscar playa…"
+               autocomplete="off">
+        <ul id="navSearchResults"
+            class="dropdown-menu show position-absolute w-100"
+            style="top:110%; display:none; max-height:240px; overflow-y:auto; z-index:9999;">
+        </ul>
+      </div>
+
+      <a href="/admin/" class="btn btn-outline-light btn-sm">Admin</a>
+
+    </div>
+  </div>
+</nav>
+
+
+<div style="width: 100%; display:flex; gap:20px; align-items:stretch;">
+
+    <div style="width: 100%; flex:4; display:flex; flex-direction:column;">
+        <h2>Mapa de Playas</h2>
+        <div id="filters-bar" style="padding:10px; background:#f8f9fa; border-bottom:1px solid #ddd; display:flex; gap:10px; flex-wrap:wrap;">
+
+            <select id="filter-year">
+                <option value="">All Years</option>
+            </select>
+
+            <select id="filter-country">
+                <option value="">All Countries</option>
+            </select>
+
+            <input type="number" id="filter-min-density" placeholder="Min Density" step="0.1" />
+
+            <button id="apply-filters">Apply</button>
+            <button id="reset-filters">Reset</button>
+
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+<div id="dashboard" style="
+    flex:0.6;
+    margin-top: 65px;
+    display:flex;
+    flex-direction:column;
+    overflow:auto;
+    padding:20px;
+    border-radius:5px;
+    font-family:system-ui, -apple-system, sans-serif;
+">
+    <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-countries">0</div>
+            <div class="stat-label">Países monitoreados</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-beaches">0</div>
+            <div class="stat-label">Playas monitoreadas</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-events">0</div>
+            <div class="stat-label">Muestreos validados</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-orgs">0</div>
+            <div class="stat-label">Organizaciones activas</div>
+        </div>
+
+    </div>
+</div>
+
+
+</div>
+
+<hr style="margin:40px 0;">
+
+<div id="powerbi-dashboard">
+    <h3>Marine Litter Dashboard</h3>
+
+    <iframe
+        width="100%"
+        height="600"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNTIzMzdhZTgtM2MyYi00ZmNhLThlMzYtNjQ4MDg4MmYyNDk4IiwidCI6ImRiOWQ4ZGFkLTUxY2YtNGY4MS04NTQ2LTJiNTU3YjdlYTg4NSIsImMiOjR9" 
+        frameborder="0"
+        allowFullScreen="true">
+    </iframe>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+    const LITTER_COLORS = {
+        "Plastics": "#f4a300",
+        "Cigarette butts": "#e8d189",
+        "Metals": "#9e9e9e",
+        "Glass": "#4db6ac",
+        "Papers": "#d9d9d9",
+        "Worked wood": "#c25a0e",
+        "Face masks": "#5da5da",
+        "Others": "#111111"
+    };
+
+
+    const map = L.map('map').setView([-15, -80], 4);
+
+    const markersLayer = L.layerGroup().addTo(map);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri',
+        maxZoom: 13
+    }).addTo(map);
+
+    // 🔵 Escala de color continua por densidad
+    function getDensityColor(value) {
+        const scale = d3.scaleLinear()
+            .domain([0, 0.5, 1.5, 3])   // ajusta si tus datos cambian
+            .range(["#4caf50", "#ffeb3b", "#ff9800", "#e53935"])
+            .clamp(true);
+
+        return scale(value);
+    }
+
+    // 🔵 Escala de tamaño perceptual (raíz cuadrada)
+    function getRadius(value) {
+        const scale = d3.scaleSqrt()
+            .domain([0, 3])   // mismo máximo que color
+            .range([6, 18])
+            .clamp(true);
+
+        return scale(value);
+    }
+
+
+
+    function loadMapData(params = "") {
+
+        fetch("/litter/api/beaches-summary-v2/" + params)
+            .then(response => response.json())
+            .then(data => {
+
+                // 🔹 Poblar dropdowns dinámicamente
+                if (data.filters) {
+
+                    const yearSelect = document.getElementById("filter-year");
+                    const countrySelect = document.getElementById("filter-country");
+
+                    yearSelect.innerHTML = '<option value="">All Years</option>';
+                    countrySelect.innerHTML = '<option value="">All Countries</option>';
+
+                    data.filters.years.forEach(year => {
+                        yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                    });
+
+                    data.filters.countries.forEach(country => {
+                        yearSelect;
+                        countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
+                    });
+                }
+
+                markersLayer.clearLayers();
+
+                const beaches = data.beaches;
+
+                beaches.forEach(feature => {
+
+                    const density = feature.density || 0;
+
+                    const marker = L.circleMarker(
+                        [feature.latitude, feature.longitude],
+                        {
+                            radius: getRadius(density),
+                            fillColor: getDensityColor(density),
+                            color: "#222",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.85
+                        }
+                    );
+
+                    marker.addTo(markersLayer);
+
+                    marker.bindPopup(`
+                        <div style="width:420px;">
+                            <a href="/litter/beaches/${feature.id}/" style="font-size:16px; font-weight:700; text-decoration:none; color:#1D9E75;">${feature.name}</a><br>
+                            Último evento: ${feature.last_event_date}<br>
+
+                            <div style="display:flex; margin-top:10px;">
+                                <div id="pie-${feature.id}" style="width:240px; height:240px;"></div>
+                                <div id="legend-${feature.id}" style="flex:1; padding-left:10px;"></div>
+                            </div>
+                        </div>
+                    `, {
+                        maxWidth: 450
+                    });
+
+                    marker.on("popupopen", function () {
+                        drawPieChart(
+                            `pie-${feature.id}`,
+                            feature.composition,
+                            density,
+                            feature.total_items
+                        );
+                    });
+                });
+                // Actualizar stats
+                if (data.stats) {
+                    document.getElementById("stat-beaches").innerText = data.stats.total_beaches;
+                    document.getElementById("stat-events").innerText = data.stats.total_events;
+                    document.getElementById("stat-countries").innerText = data.stats.total_countries;
+                    document.getElementById("stat-orgs").innerText = data.stats.total_organizations;
+                }
+
+            });
+    }
+
+    // Cargar datos iniciales
+    loadMapData();
+
+    document.getElementById("apply-filters").addEventListener("click", function() {
+
+        const year = document.getElementById("filter-year").value;
+        const country = document.getElementById("filter-country").value;
+        const minDensity = document.getElementById("filter-min-density").value;
+
+        let params = "?";
+
+        if (year) params += "year=" + year + "&";
+        if (country) params += "country=" + country + "&";
+        if (minDensity) params += "min_density=" + minDensity + "&";
+
+        loadMapData(params);
+    });
+
+    document.getElementById("reset-filters").addEventListener("click", function() {
+
+        document.getElementById("filter-year").value = "";
+        document.getElementById("filter-country").value = "";
+        document.getElementById("filter-min-density").value = "";
+
+        loadMapData();
+    });
+
+
+
+    function drawPieChart(containerId, dataObj, density, totalItems) {
+
+        const entries = Object.entries(dataObj)
+            .filter(([_, v]) => v > 0);
+
+        if (!entries.length) return;
+
+        const total = entries.reduce((sum, [_, v]) => sum + v, 0);
+
+        let data = entries.map(([key, value]) => ({
+            label: key,
+            value: value,
+            percent: (value / total) * 100
+        }));
+
+        // 🔵 ordenar por mayor porcentaje
+        data.sort((a, b) => b.percent - a.percent);
+
+        const width = 240;
+        const height = 240;
+        const radius = Math.min(width, height) / 2;
+
+        d3.select(`#${containerId}`).selectAll("*").remove();
+
+        const wrapper = d3.select(`#${containerId}`);
+
+        const svg = wrapper
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+        const color = d => LITTER_COLORS[d.label] || "#cccccc";
+
+        const pie = d3.pie()
+            .value(d => d.value)
+            .sort(null);
+
+        const arc = d3.arc()
+            .innerRadius(radius * 0.55)
+            .outerRadius(radius);
+
+        const arcs = svg.selectAll("arc")
+            .data(pie(data))
+            .enter()
+            .append("g");
+
+        // 🔵 animación
+        arcs.append("path")
+            .attr("fill", d => color(d.data))
+            .transition()
+            .duration(800)
+            .attrTween("d", function(d) {
+                const i = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+                return function(t) {
+                    return arc(i(t));
+                };
+            })
+            .on("end", function(_, i, nodes) {
+                if (i === nodes.length - 1) {
+                    const popup = document.querySelector(".leaflet-popup");
+                    if (popup && popup._leaflet_popup) {
+                        popup._leaflet_popup.update();
+                    }
+                }
+            });
+
+
+        // 🔵 porcentaje dentro del donut
+        const centerGroup = svg.append("g");
+
+
+
+        // Escala de color por densidad
+        function getDensityColor(value) {
+            if (value < 0.5) return "#4caf50";     // green
+            if (value < 1.5) return "#ff9800";     // orange
+            return "#e53935";                      // red
+        }
+
+        const densityColor = getDensityColor(density);
+
+        centerGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", "-6")
+            .style("font-size", "20px")
+            .style("font-weight", "700")
+            .style("fill", densityColor)
+            .text(`${density.toFixed(2)} items/m²`);
+
+        centerGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", "18")
+            .style("font-size", "14px")
+            .style("fill", "#555")
+            .text(`${totalItems} items`);
+
+
+        // 🔵 leyenda horizontal
+        const legend = d3.select(`#legend-${containerId.split('-')[1]}`);
+
+        legend.selectAll("*").remove();
+
+        data.forEach(d => {
+            legend.append("div")
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("margin-bottom", "6px")
+                .style("font-size", "12px")
+                .html(`
+                    <span style="
+                        width:12px;
+                        height:12px;
+                        background:${color(d)};
+                        display:inline-block;
+                        margin-right:6px;
+                    "></span>
+                    ${d.label}
+                    <span style="margin-left:auto; font-weight:bold;">
+                        ${d.percent.toFixed(1)}%
+                    </span>
+                `);
+        });
+
+    }
+
+</script>
+<script src="{% static 'js/layout.js' %}"></script>
+<script>
+(function () {
+  const input   = document.getElementById("navSearchInput");
+  const results = document.getElementById("navSearchResults");
+  if (!input) return;
+
+  let allBeaches = [];
+  let loaded     = false;
+
+  function loadBeaches() {
+    if (loaded) return;
+    loaded = true;
+    fetch("/litter/api/beaches/")
+      .then(r => r.json())
+      .then(data => { allBeaches = data; })
+      .catch(() => {});
+  }
+
+  input.addEventListener("focus", loadBeaches);
+
+  input.addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    results.innerHTML = "";
+
+    if (q.length < 2) { results.style.display = "none"; return; }
+
+    const matches = allBeaches
+      .filter(b => b.name.toLowerCase().includes(q))
+      .slice(0, 8);
+
+    if (!matches.length) { results.style.display = "none"; return; }
+
+    matches.forEach(b => {
+      const li = document.createElement("li");
+      li.innerHTML = `<a class="dropdown-item small" href="/litter/beaches/${b.id}/">
+        <strong>${b.name}</strong>
+      </a>`;
+      results.appendChild(li);
+    });
+
+    results.style.display = "block";
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!input.contains(e.target)) results.style.display = "none";
+  });
+})();
+</script>
+
+
+</body>
+</html>

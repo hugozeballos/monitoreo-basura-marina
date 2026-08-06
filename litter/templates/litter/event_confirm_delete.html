@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'litter_map' %}">Mapa</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'sampling_event_list' %}">Monitoreos</a></li>
+    <li class="breadcrumb-item">
+      <a href="{% url 'beach_detail' event.beach.pk %}">{{ event.beach.name }}</a>
+    </li>
+    <li class="breadcrumb-item active">Eliminar monitoreo</li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm border-danger">
+      <div class="card-header bg-danger text-white fw-semibold">
+        Confirmar eliminación
+      </div>
+      <div class="card-body">
+        <p class="mb-1">¿Estás seguro que deseas eliminar este monitoreo?</p>
+        <ul class="text-muted mt-2">
+          <li>Playa: <strong>{{ event.beach.name }}</strong></li>
+          <li>Fecha: <strong>{{ event.date }}</strong></li>
+          <li>Estado: <strong>{{ event.get_status_display }}</strong></li>
+        </ul>
+        <p class="text-danger small">Esta acción eliminará también todas las unidades y conteos asociados. No se puede deshacer.</p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <a href="{% url 'sampling_event_detail' event.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa de Playas</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        #map {
+            height: 100vh;
+        }
+        .leaflet-popup-content {
+            overflow: visible !important;
+        }
+        .popup-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .popup-sub {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .stat-card {
+            flex:1;
+            background:white;
+            border-radius:5px;
+            padding:24px 10px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            box-shadow:0 6px 14px rgba(0,0,0,0.08);
+            margin-bottom:15px;
+            min-height:120px;
+            width:85%;
+            margin:0 auto;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size:22px;
+            font-weight:700;
+            color:#111;
+            margin-bottom:6px;
+
+        }
+
+        .stat-label {
+            font-size:14px;
+            font-weight:600;
+            color:#666;
+            margin-top:6px;
+        }
+
+        #powerbi-dashboard {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+</style>
+    </style>
+</head>
+<body>
+
+<div style="
+    position:absolute;
+    top:15px;
+    right:20px;
+    z-index:1000;
+">
+    <a href="/admin/" style="
+        text-decoration:none;
+        background:#ffffff;
+        color:#333;
+        padding:6px 12px;
+        border-radius:8px;
+        font-size:13px;
+        font-family:system-ui;
+        box-shadow:0 3px 8px rgba(0,0,0,0.1);
+    ">
+        Admin
+    </a>
+</div>
+
+<div style="width: 100%; display:flex; gap:20px; align-items:stretch;">
+
+    <div style="width: 100%; flex:4; display:flex; flex-direction:column;">
+        <h2>Mapa de Playas</h2>
+        <div id="map"></div>
+    </div>
+
+<div id="dashboard" style="
+    flex:0.6;
+    margin-top: 65px;
+    display:flex;
+    flex-direction:column;
+    overflow:auto;
+    padding:20px;
+    border-radius:5px;
+    font-family:system-ui, -apple-system, sans-serif;
+">
+    <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-countries">0</div>
+            <div class="stat-label">Países monitoreados</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-beaches">0</div>
+            <div class="stat-label">Playas monitoreadas</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-events">0</div>
+            <div class="stat-label">Muestreos validados</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value" id="stat-orgs">0</div>
+            <div class="stat-label">Organizaciones activas</div>
+        </div>
+
+    </div>
+</div>
+
+
+</div>
+
+<hr style="margin:40px 0;">
+
+<div id="powerbi-dashboard">
+    <h3>Marine Litter Dashboard</h3>
+
+    <iframe
+        width="100%"
+        height="600"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNTIzMzdhZTgtM2MyYi00ZmNhLThlMzYtNjQ4MDg4MmYyNDk4IiwidCI6ImRiOWQ4ZGFkLTUxY2YtNGY4MS04NTQ2LTJiNTU3YjdlYTg4NSIsImMiOjR9" 
+        frameborder="0"
+        allowFullScreen="true">
+    </iframe>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+    const LITTER_COLORS = {
+        "Plastics": "#f4a300",
+        "Cigarette butts": "#e8d189",
+        "Metals": "#9e9e9e",
+        "Glass": "#4db6ac",
+        "Papers": "#d9d9d9",
+        "Worked wood": "#c25a0e",
+        "Face masks": "#5da5da",
+        "Others": "#111111"
+    };
+
+
+    const map = L.map('map').setView([-27.1127, -109.3497], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 🔵 Escala de color continua por densidad
+    function getDensityColor(value) {
+        const scale = d3.scaleLinear()
+            .domain([0, 0.5, 1.5, 3])   // ajusta si tus datos cambian
+            .range(["#4caf50", "#ffeb3b", "#ff9800", "#e53935"])
+            .clamp(true);
+
+        return scale(value);
+    }
+
+    // 🔵 Escala de tamaño perceptual (raíz cuadrada)
+    function getRadius(value) {
+        const scale = d3.scaleSqrt()
+            .domain([0, 3])   // mismo máximo que color
+            .range([6, 18])
+            .clamp(true);
+
+        return scale(value);
+    }
+
+
+
+    fetch("/litter/api/beaches-summary/")
+        .then(response => response.json())
+        .then(data => {
+            console.log("API RESPONSE:", data);
+
+            const stats = data.stats;
+
+            document.getElementById("stat-countries").innerText =
+                stats.total_countries;
+
+            document.getElementById("stat-beaches").innerText =
+                stats.total_beaches;
+
+            document.getElementById("stat-events").innerText =
+                stats.total_events;
+
+            document.getElementById("stat-orgs").innerText =
+                stats.total_organizations;
+
+            data.beaches.forEach(beach => {
+
+                const density = beach.density || 0;
+
+                const marker = L.circleMarker(
+                    [beach.latitude, beach.longitude],
+                    {
+                        radius: getRadius(density),
+                        fillColor: getDensityColor(density),
+                        color: "#222",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.85
+                    }
+                ).addTo(map);
+
+
+                marker.bindPopup(`
+                    <div style="width:420px;">
+                        <strong>${beach.name}</strong><br>
+                        Último evento: ${beach.last_event_date}<br>
+                        Densidad: ${beach.density.toFixed(2)} items/m²<br>
+                        Total items: ${beach.total_items}<br>
+
+                        <div style="display:flex; margin-top:10px;">
+                            <div id="pie-${beach.id}" style="width:240px; height:240px;"></div>
+                            <div id="legend-${beach.id}" style="flex:1; padding-left:10px;"></div>
+                        </div>
+                    </div>
+                `, {
+                    maxWidth: 450
+                });
+
+                marker.on("popupopen", function (e) {
+
+                    drawPieChart(`pie-${beach.id}`, beach.composition, beach.density, beach.total_items);
+
+
+                });
+
+            });
+        })
+        .catch(error => console.error("Error loading beaches:", error));
+
+    function drawPieChart(containerId, dataObj, density, totalItems) {
+
+        const entries = Object.entries(dataObj)
+            .filter(([_, v]) => v > 0);
+
+        if (!entries.length) return;
+
+        const total = entries.reduce((sum, [_, v]) => sum + v, 0);
+
+        let data = entries.map(([key, value]) => ({
+            label: key,
+            value: value,
+            percent: (value / total) * 100
+        }));
+
+        // 🔵 ordenar por mayor porcentaje
+        data.sort((a, b) => b.percent - a.percent);
+
+        const width = 240;
+        const height = 240;
+        const radius = Math.min(width, height) / 2;
+
+        d3.select(`#${containerId}`).selectAll("*").remove();
+
+        const wrapper = d3.select(`#${containerId}`);
+
+        const svg = wrapper
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+        const color = d => LITTER_COLORS[d.label] || "#cccccc";
+
+        const pie = d3.pie()
+            .value(d => d.value)
+            .sort(null);
+
+        const arc = d3.arc()
+            .innerRadius(radius * 0.55)
+            .outerRadius(radius);
+
+        const arcs = svg.selectAll("arc")
+            .data(pie(data))
+            .enter()
+            .append("g");
+
+        // 🔵 animación
+        arcs.append("path")
+            .attr("fill", d => color(d.data))
+            .transition()
+            .duration(800)
+            .attrTween("d", function(d) {
+                const i = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+                return function(t) {
+                    return arc(i(t));
+                };
+            })
+            .on("end", function(_, i, nodes) {
+                if (i === nodes.length - 1) {
+                    const popup = document.querySelector(".leaflet-popup");
+                    if (popup && popup._leaflet_popup) {
+                        popup._leaflet_popup.update();
+                    }
+                }
+            });
+
+
+        // 🔵 porcentaje dentro del donut
+        const centerGroup = svg.append("g");
+
+
+
+        // Escala de color por densidad
+        function getDensityColor(value) {
+            if (value < 0.5) return "#4caf50";     // green
+            if (value < 1.5) return "#ff9800";     // orange
+            return "#e53935";                      // red
+        }
+
+        const densityColor = getDensityColor(density);
+
+        centerGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", "-6")
+            .style("font-size", "20px")
+            .style("font-weight", "700")
+            .style("fill", densityColor)
+            .text(`${density.toFixed(2)} items/m²`);
+
+        centerGroup.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", "18")
+            .style("font-size", "14px")
+            .style("fill", "#555")
+            .text(`${totalItems} items`);
+
+
+        // 🔵 leyenda horizontal
+        const legend = d3.select(`#legend-${containerId.split('-')[1]}`);
+
+        legend.selectAll("*").remove();
+
+        data.forEach(d => {
+            legend.append("div")
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("margin-bottom", "6px")
+                .style("font-size", "12px")
+                .html(`
+                    <span style="
+                        width:12px;
+                        height:12px;
+                        background:${color(d)};
+                        display:inline-block;
+                        margin-right:6px;
+                    "></span>
+                    ${d.label}
+                    <span style="margin-left:auto; font-weight:bold;">
+                        ${d.percent.toFixed(1)}%
+                    </span>
+                `);
+        });
+
+    }
+
+</script>
+
+</body>
+</html>

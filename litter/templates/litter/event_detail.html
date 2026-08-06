@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Monitoreo #{{ event.id }}</h2>
+
+<p><strong>Playa:</strong> {{ event.beach.name }}</p>
+<p><strong>Fecha:</strong> {{ event.date }}</p>
+<p><strong>Método:</strong> {{ event.sampling_method.name }}</p>
+<p>
+<strong>Estado:</strong>
+
+{% if event.status == "draft" %}
+<span class="badge bg-secondary">Draft</span>
+{% elif event.status == "submitted" %}
+<span class="badge bg-warning text-dark">Submitted</span>
+{% elif event.status == "validated" %}
+<span class="badge bg-success">Validated</span>
+{% elif event.status == "rejected" %}
+<span class="badge bg-danger">Rejected</span>
+{% endif %}
+</p>
+<hr>
+
+<h3 class="mb-3">Métricas</h3>
+
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <h6>Total Items</h6>
+        <h3>{{ event.event_total_items }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <h6>Área Total</h6>
+        <h3>{{ event.event_area_m2 }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <h6>Densidad</h6>
+        <h3>{{ event.event_density_items_per_m2 }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+
+<hr>
+
+{% if event.status == "draft" %}
+    <a class="btn btn-warning"
+       href="{% url 'sampling_event_submit' event.id %}">
+       Enviar
+    </a>
+{% elif event.status == "submitted" %}
+    <a class="btn btn-success"
+       href="{% url 'sampling_event_validate' event.id %}">
+       Validar
+    </a>
+    <a class="btn btn-danger"
+       href="{% url 'sampling_event_reject' event.id %}">
+       Rechazar
+    </a>
+{% endif %}
+
+<h3>Unidades</h3>
+
+<p>Total unidades: {{ total_units }}</p>
+
+<div class="table-responsive">
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Label</th>
+            <th>Transect</th>
+            <th>Station</th>
+            <th>Área</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unit in units %}
+        <tr>
+            <td>{{ unit.label }}</td>
+            <td>{{ unit.transect_no }}</td>
+            <td>{{ unit.station_no }}</td>
+            <td>{{ unit.area_m2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<br>
+
+<a href="{% url 'sampling_event_units' event.id %}">Ver unidades</a> |
+<a href="{% url 'sampling_event_entry' event.id %}">Ingresar datos</a>
+<a href="{% url 'sampling_event_delete' event.pk %}" class="btn btn-outline-danger btn-sm">Eliminar monitoreo</a>
+
+{% endblock %}

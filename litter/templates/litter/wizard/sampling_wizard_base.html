@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Crear Monitoreo — Paso 1/3</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ wizard.management_form }}
+
+  <div class="mb-3">
+    {{ form.beach.label_tag }} {{ form.beach }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.date.label_tag }} {{ form.date }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.organization.label_tag }} {{ form.organization }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.notes.label_tag }} {{ form.notes }}
+  </div>
+
+  <button class="btn btn-primary" type="submit">Siguiente</button>
+</form>
+
+{% endblock %}

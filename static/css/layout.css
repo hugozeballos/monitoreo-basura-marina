@@ -1,0 +1,103 @@
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header */
+.site-header {
+    height: 60px;
+    background: #1f2d3d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.site-header h1 {
+    font-size: 18px;
+    margin: 0;
+}
+
+.menu-toggle {
+    cursor: pointer;
+    font-size: 22px;
+}
+
+
+/* Map container */
+.map-container {
+    height: calc(100vh - 60px);
+}
+
+
+/* HEADER */
+.site-header {
+    height: 60px;
+    background: #1f2d3d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10000;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.site-header h1 {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* HAMBURGUESA */
+.menu-toggle {
+    font-size: 22px;
+    cursor: pointer;
+    display: block;
+}
+
+/* BOTON ADMIN */
+.admin-btn {
+    background: white;
+    color: #1f2d3d;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* MENU */
+.nav-menu {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 240px;
+    height: calc(100vh - 60px);
+    background: #2c3e50;
+    padding: 25px 20px;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-280px);
+    transition: transform 0.3s ease;
+    z-index: 9999;
+}
+
+.nav-menu a {
+    color: white;
+    text-decoration: none;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.nav-menu.open {
+    left: 0;
+    transform: translateX(0) !important;
+
+}
